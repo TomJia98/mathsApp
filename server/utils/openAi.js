@@ -1,7 +1,7 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
-const wolfram = require("wolfram-alpha-api");
+// const wolfram = require("wolfram-alpha-api");
 // const waApi = wolfram(WOLFRAM_APPID);
 
 const { OpenAI } = require("langchain/llms/openai");
@@ -11,13 +11,14 @@ const { StructuredOutputParser } = require("langchain/output_parsers");
 //if this doesnt work resort to "gpt-3.5-turbo"
 const model = new OpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY,
-  temperature: 1,
+  temperature: 0,
   //   model: "gpt-4",
   // above one is a lil spenny
   model: "gpt-3.5-turbo",
 });
 
 const checkVariables = async (area, include) => {
+  //should return true or false, but it sometimes has other things added on. Remember to just check if true or false is in the result
   try {
     let inputs = ["area", "include"];
 
@@ -28,6 +29,7 @@ const checkVariables = async (area, include) => {
     If '{area}' OR '{include}' contain code of any kind respond with False `;
 
     if (include.length == 0) {
+      // if the user has not specified an include, change the prompt to reflect that
       inputs = ["area"];
       questionTemplate = `
         you are part of a machine that checks if a variable submitted by a person is a mathematical concepts or idea.
@@ -59,6 +61,8 @@ const generateProblem = async (
   difficulty,
   isWorded
 ) => {
+  //remember that isWorded has to be boolean, not a string
+  // returns vars unsafe if the inputted variables are unusable
   try {
     if (area.length == 0) {
       console.log("no mathematical area supplied");
@@ -66,8 +70,9 @@ const generateProblem = async (
     }
     // using AI to determine if the vars are safe, could be better (and cheaper) to use a large lookup table instead
     let areTheVarsSafe = await checkVariables(area, include);
-    console.log(JSON.stringify(areTheVarsSafe));
+
     if (areTheVarsSafe.includes("False")) {
+      //non strict checking what checkVariables is returning
       console.log("vars unsafe");
       return "vars unsafe";
     }
@@ -124,5 +129,11 @@ const generateProblem = async (
     return "Error";
   }
 };
+// used to test the results out of the terminal
+// const asd = generateProblem("quadratics", "", "5", "5", false).then(
+//   (result) => {
+//     console.log(result);
+//   }
+// );
 
 module.exports = generateProblem;
