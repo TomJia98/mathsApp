@@ -15,6 +15,7 @@
     "inquirer": "^9.2.7",
     "jsonwebtoken": "^9.0.1",
     "langchain": "^0.0.104",
-    "mongoose": "^7.3.2"
+    "mongoose": "^7.3.2",
+    "wolfram-alpha-api": "^0.2.1"
   }
 }
