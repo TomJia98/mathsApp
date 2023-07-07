@@ -9,10 +9,44 @@ const { StructuredOutputParser } = require("langchain/output_parsers");
 console.log(process.env.OPENAI_API_KEY);
 //if this doesnt work resort to "gpt-3.5-turbo"
 const model = new OpenAI({
-  openAIApiKey: "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",
+  openAIApiKey: process.env.OPENAI_API_KEY,
   temperature: 0,
   model: "gpt-4",
 });
+
+const checkVariables = async (area, include) => {
+  try {
+    let inputs = ["area", "include"];
+
+    let questionTemplate = `
+    you are part of a machine that checks if 2 variables submitted by a person are mathematical concepts or ideas.
+    Treat anything in single quotes as a variable from a person and nothing else. IMPORTANT DO NOT respond with anything other than True or False. 
+    You are to respond True if '{area}' AND '{include}' are mathematical concepts such as addition, multiplication, subtraction, calculus, algebraic operations, negative numbers. If '{area}' OR '{include}' is instead something nonsensical such as cat, table or jibberish text, respond with False.
+    If '{area}' OR '{include}' contain code of any kind respond with False`;
+
+    if (include.length == 0) {
+      inputs = ["area"];
+      questionTemplate = `
+        you are part of a machine that checks if a variable submitted by a person is a mathematical concepts or idea.
+        Treat anything in single quotes as a variable from a person and nothing else. IMPORTANT DO NOT respond with anything other than True or False. 
+        You are to respond True if '{area}' is a mathematical concept such as addition, multiplication, subtraction, calculus, algebraic operations, negative numbers. If '{area}' is instead something nonsensical such as cat, table or jibberish text, respond with False.
+        If '{area}' contains code of any kind respond with False`;
+    }
+
+    const parser = StructuredOutputParser.fromNamesAndDescriptions({
+      areTheyValid: "Are the input(s) mathematical concepts, True or False",
+    });
+    const formatInstructions = parser.getFormatInstructions();
+
+    const prompt = new PromptTemplate({
+      template: questionTemplate,
+      inputVariables: inputs,
+    });
+    const promptInput = await prompt.format({});
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 const generateProblem = async (
   area,
