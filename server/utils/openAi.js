@@ -50,7 +50,7 @@ const checkVariables = async (area, include) => {
     const res = await model.call(promptInput);
     return res;
   } catch (err) {
-    console.error(err);
+    console.error("error: \n" + err);
   }
 };
 
@@ -125,8 +125,36 @@ const generateProblem = async (
     const result = await parser.parse(res);
     return result;
   } catch (err) {
-    console.log(err);
+    console.error("error: \n" + err);
     return "Error";
+  }
+};
+
+const generateSteps = async (problem, solution) => {
+  try {
+    const parser = StructuredOutputParser.fromNamesAndDescriptions({
+      steps:
+        "The steps generated from the input problem, with each step being seperated from the others by a comma. ALWAYS start the step with Step, followed by its number, and a colon.",
+    });
+    const formatInstructions = parser.getFormatInstructions();
+    const prompt = new PromptTemplate({
+      template:
+        "Given the mathematical problem '{problem}', and its solution '{solution}', please generate a comprehensive, step-by-step guide on how to solve this problem. Each step should be detailed, explaining the mathematical reasoning and operations used. Start from the initial problem statement and work towards the provided solution.\n{format_instructions}",
+      //template: `You are a mathematical tutor that will explain the steps needed to solve the given mathematical problem '{problem}' and its solution '{solution}'. please generate a step-by-step guide on how to solve this problem from start to finish\n{format_instructions}`,
+      inputVariables: ["problem", "solution"],
+      partialVariables: { format_instructions: formatInstructions },
+    });
+    const promptInput = await prompt.format({
+      problem: problem,
+      solution: solution,
+    });
+
+    let res = await model.call(promptInput);
+
+    const result = await parser.parse(res);
+    return result;
+  } catch (err) {
+    console.error("error: \n" + err);
   }
 };
 // used to test the results out of the terminal
@@ -136,4 +164,4 @@ const generateProblem = async (
 //   }
 // );
 
-module.exports = generateProblem;
+(module.exports = generateProblem), generateSteps;
