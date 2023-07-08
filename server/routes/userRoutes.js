@@ -96,7 +96,7 @@ router.get("/logout", withAuth, async (req, res) => {
       console.log("logging out user");
       res.status(200).json({ message: "see ya!" });
       //.redirect("/home");
-      //make sure to impliment a home page to redirect to!
+      //make sure to impliment a home page to redirect too!
     });
   } catch (err) {
     console.error(err);
@@ -118,6 +118,32 @@ router.get("/", withAuth, async (req, res) => {
       return;
     }
     res.status(200).json({ user: currentUser });
+  } catch (err) {
+    console.error(err);
+    res.send(err);
+  }
+});
+
+//delete the current user from the database, as well as all their data
+router.delete("/", withAuth, async (req, res) => {
+  try {
+    const deleteUser = await User.findOneAndDelete({
+      _id: req.session.user_id,
+    });
+
+    if (!deleteUser) {
+      return res.status(404).json({ message: "No user with this id!" });
+    }
+    for (const session of deleteUser.sessions) {
+      await Response.deleteMany({ _id: { $in: session.response } });
+    }
+    await Session.deleteMany({ _id: { $in: deleteUser.sessions } });
+    req.session.destroy(() => {
+      console.log(`user ${deleteUser.username} has been wiped from the server`);
+      res.json({
+        message: `user ${deleteUser.username} has been wiped from the server`,
+      });
+    });
   } catch (err) {
     console.error(err);
     res.send(err);

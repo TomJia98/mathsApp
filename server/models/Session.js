@@ -22,10 +22,12 @@ const sessionSchema = new Schema(
       type: Number,
       required: true,
     },
-    response: {
-      type: Schema.Types.ObjectId,
-      ref: "Response",
-    },
+    response: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Response",
+      },
+    ],
   },
   { timestamps: true }
 );
