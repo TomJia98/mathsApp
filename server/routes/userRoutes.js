@@ -79,7 +79,6 @@ router.post("/login", async (req, res) => {
       req.session.user_id = userData._id;
       req.session.logged_in = true;
       res.status(200).json({
-        user: userData,
         message: `Hello ${userData.username}, welcome back!`,
       });
     });
@@ -144,6 +143,30 @@ router.delete("/", withAuth, async (req, res) => {
         message: `user ${deleteUser.username} has been wiped from the server`,
       });
     });
+  } catch (err) {
+    console.error(err);
+    res.send(err);
+  }
+});
+
+//update user
+router.put("/", withAuth, async (req, res) => {
+  try {
+    if (req.body.username) {
+      const checkIfTaken = await User.findOne({ username: req.body.username });
+      if (checkIfTaken) {
+        res.status(400).json({ message: "username is already taken" });
+        return;
+      }
+    }
+    const updateUser = await User.findOneAndUpdate(
+      { _id: req.session.user_id },
+      req.body,
+      { new: true }
+    );
+    res
+      .status(200)
+      .json({ message: `user ${updateUser.username} successfully updated` });
   } catch (err) {
     console.error(err);
     res.send(err);
