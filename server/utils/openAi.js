@@ -1,9 +1,6 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
-// const wolfram = require("wolfram-alpha-api");
-// const waApi = wolfram(WOLFRAM_APPID);
-
 const { OpenAI } = require("langchain/llms/openai");
 const { PromptTemplate } = require("langchain/prompts");
 const { StructuredOutputParser } = require("langchain/output_parsers");
@@ -51,6 +48,7 @@ const checkVariables = async (area, include) => {
     return res;
   } catch (err) {
     console.error("error: \n" + err);
+    return ["error", err];
   }
 };
 
@@ -126,21 +124,22 @@ const generateProblem = async (
     return result;
   } catch (err) {
     console.error("error: \n" + err);
-    return "Error";
+    return ["error", err];
   }
 };
 
 const generateSteps = async (problem, solution) => {
+  // generate steps to solve a single problem, based on the given solution
   try {
     const parser = StructuredOutputParser.fromNamesAndDescriptions({
       steps:
         "The steps generated from the input problem, with each step being seperated from the others by a comma. ALWAYS start the step with Step, followed by its number, and a colon.",
+      amountOfSteps: "the number of steps taken to solve the problem",
     });
     const formatInstructions = parser.getFormatInstructions();
     const prompt = new PromptTemplate({
       template:
         "Given the mathematical problem '{problem}', and its solution '{solution}', please generate a comprehensive, step-by-step guide on how to solve this problem. Each step should be detailed, explaining the mathematical reasoning and operations used. Start from the initial problem statement and work towards the provided solution.\n{format_instructions}",
-      //template: `You are a mathematical tutor that will explain the steps needed to solve the given mathematical problem '{problem}' and its solution '{solution}'. please generate a step-by-step guide on how to solve this problem from start to finish\n{format_instructions}`,
       inputVariables: ["problem", "solution"],
       partialVariables: { format_instructions: formatInstructions },
     });
@@ -155,13 +154,8 @@ const generateSteps = async (problem, solution) => {
     return result;
   } catch (err) {
     console.error("error: \n" + err);
+    return ["error", err];
   }
 };
-// used to test the results out of the terminal
-// const asd = generateProblem("quadratics", "", "5", "5", false).then(
-//   (result) => {
-//     console.log(result);
-//   }
-// );
 
-(module.exports = generateProblem), generateSteps;
+module.exports = { generateProblem, generateSteps };

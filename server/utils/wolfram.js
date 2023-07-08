@@ -5,6 +5,7 @@ const fetch = require("node-fetch");
 const appID = process.env.WOLFRAM_APPID;
 
 async function fetchSolution(inputProblem) {
+  //given a problem, return a solution object.
   try {
     const query = encodeURIComponent(inputProblem);
     const response = await fetch(
@@ -17,6 +18,7 @@ async function fetchSolution(inputProblem) {
       return new Error("cound not find results");
     }
     for (const pod of data.queryresult.pods) {
+      //filter through the results and return the one that matches "Results"
       if (pod.title === "Results") {
         results = pod;
       }
@@ -27,4 +29,4 @@ async function fetchSolution(inputProblem) {
   }
 }
 
-module.exports = fetchSolution;
+module.exports = { fetchSolution };
