@@ -89,7 +89,8 @@ const generateProblem = async (
 
     const parser = StructuredOutputParser.fromNamesAndDescriptions({
       results:
-        "The generated problems from the users inputs, with each problem being seperated from the others by a comma. DO NOT USE and to join the problems, only commas",
+        // "The generated problems from the users inputs, with each indivdual problem being stored so that JSON.parse can turn it into an array",
+        "The generated problems from the users inputs, with each problem being seperated from the others by an @ symbol. DO NOT USE and to join the problems",
     });
     const formatInstructions = parser.getFormatInstructions();
     const prompt = new PromptTemplate({
@@ -97,6 +98,7 @@ const generateProblem = async (
       You are to generate {amountOfProblems} math problems, each with a difficulty {difficultyLevel}, with 1 being the easiest (primary school level) and 10 being the most challenging (graduate mathmatician).
         Each problem must strictly be under the the mathematical concept of {mathArea} and some must include {mustInclude}.
         DO NOT answer the problems.
+        DO NOT include the @ symbol as part of your problems.
         ONLY respond with the problems.
        Have each problem be different from the rest and slightly varying in difficulty, but not exceeding the overall difficulty.
       {resultFormat},\n{format_instructions}`,

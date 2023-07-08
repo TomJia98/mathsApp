@@ -17,6 +17,7 @@ async function fetchSolution(inputProblem) {
       console.error("Error:", results);
       return new Error("cound not find results");
     }
+    console.log(data.queryresult.didyoumeans);
     for (const pod of data.queryresult.pods) {
       //filter through the results and return the one that matches "Results"
       if (pod.title === "Results") {
