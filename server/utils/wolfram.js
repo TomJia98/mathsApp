@@ -2,27 +2,29 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 const fetch = require("node-fetch");
 
-// const wolfram = require("wolfram-alpha-api");
-// const waApi = wolfram(WOLFRAM_APPID);
+const appID = process.env.WOLFRAM_APPID;
 
-const appID = process.env.WOLFRAM_APPID; // Replace with your AppID
-const query = encodeURIComponent("Solve the equation x^2 + 4x + 3 = 0"); // URL encode your query
-
-async function fetchSolution() {
+async function fetchSolution(inputProblem) {
   try {
+    const query = encodeURIComponent(inputProblem);
     const response = await fetch(
-      `http://api.wolframalpha.com/v2/query?input=${query}&appid=${appID}&output=json&format=image`
+      `http://api.wolframalpha.com/v2/query?input=${query}&appid=${appID}&output=json&format=plaintext`
     );
     const data = await response.json();
-    console.log(data);
-    for (const iterator of data.queryresult.pods) {
-      console.log(iterator);
+    let results;
+    if (data.queryresult.error) {
+      console.error("Error:", results);
+      return new Error("cound not find results");
     }
-    // Handle the data here
+    for (const pod of data.queryresult.pods) {
+      if (pod.title === "Results") {
+        results = pod;
+      }
+      return results;
+    }
   } catch (error) {
     console.error("Error:", error);
-    // Handle the error here
   }
 }
 
-fetchSolution();
+module.exports = fetchSolution;
