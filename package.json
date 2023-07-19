@@ -1,0 +1,14 @@
+{
+  "name": "maths-questions-app",
+  "version": "1.0.0",
+  "description": "an app to generate problems, and then provide solutions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
