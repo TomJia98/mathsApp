@@ -157,7 +157,7 @@ const generateSteps = async (problem, solution) => {
   try {
     const parser = StructuredOutputParser.fromNamesAndDescriptions({
       steps:
-        "The steps generated from the input problem, with each step being seperated from the others by an @. ALWAYS start the step with Step, followed by its number, and a colon.",
+        "The steps generated from the input problem. ALWAYS start the step with Step, followed by its number, and a colon. ALWAYS finish a step with an @",
       amountOfSteps: "the number of steps taken to solve the problem",
     });
     const formatInstructions = parser.getFormatInstructions();

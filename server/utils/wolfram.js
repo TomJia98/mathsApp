@@ -53,7 +53,7 @@ async function fetchSolution(inputProblem) {
     for (const pod of data.queryresult.pods) {
       console.log(pod, "pod");
       //filter through the results and return the one that matches "Results"
-      if (pod.title === "Result") {
+      if (pod.title === "Result" || pod.title === "Results") {
         return pod;
       }
     }

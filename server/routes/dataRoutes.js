@@ -15,11 +15,6 @@ const { fetchSolution } = require("../utils/wolfram");
 // create a new set of problems based on the users inputs, return the array of problems and save the wolfram version to the db
 router.post("/create", withAuth, async (req, res) => {
   try {
-    console.log(
-      typeof req.body.amountOfProblems,
-      "<--------------------------------"
-    );
-
     if (req.body.include.includes("@")) {
       req.body.include = "";
     }
@@ -90,7 +85,8 @@ router.post("/solve", withAuth, async (req, res) => {
     let solution = "";
     console.log(req.body.problem);
     let solutionFromWolfram = await fetchSolution(req.body.problem);
-    console.log(await solutionFromWolfram, "line 70 dr");
+    console.log(solutionFromWolfram, "line 70 dr");
+
     if ((await solutionFromWolfram.subpods.length) > 0) {
       for (const subpod of solutionFromWolfram.subpods) {
         if (solution === "") {
@@ -104,7 +100,25 @@ router.post("/solve", withAuth, async (req, res) => {
       solution = solutionFromWolfram.subpods.plaintext;
     }
     console.log(solution, "solution");
-    res.status(200).json({ solution: solution });
+    const problemSteps = await generateSteps(req.body.problem, solution);
+    const problemsStepsArray = problemSteps.steps.split("@");
+    problemsStepsArray.map((problem) => problem.trim());
+
+    const updateResponse = await Response.findOneAndUpdate(
+      {
+        _id: req.body._id,
+      },
+      {
+        solution: solution,
+        steps: problemsStepsArray,
+      },
+      { new: true }
+    );
+    if (!updateResponse) {
+      res.status(404).send({ err: " could not find reponse " });
+    }
+
+    res.status(200).json({ result: updateResponse });
   } catch (err) {
     console.error(err);
     res.send(err);
