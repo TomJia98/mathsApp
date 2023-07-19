@@ -11,10 +11,16 @@ const {
   generateWolframProblems,
 } = require("../utils/openAi");
 const { fetchSolution } = require("../utils/wolfram");
+const { request } = require("http");
 
 // create a new set of problems based on the users inputs, return the array of problems and save the wolfram version to the db
 router.post("/create", withAuth, async (req, res) => {
   try {
+    console.log(
+      typeof req.body.amountOfProblems,
+      "<--------------------------------"
+    );
+
     if (req.body.include.includes("@")) {
       req.body.include = "";
     }
@@ -25,13 +31,13 @@ router.post("/create", withAuth, async (req, res) => {
       req.body.difficulty,
       req.body.isWorded
     );
-    console.log(problems, "problems 28 dr");
+    // console.log(problems, "problems 28 dr");
 
     const problemsArray = problems.resultsHuman.split("@");
     const wolframProblems = await generateWolframProblems(
       problems.resultsHuman
     );
-    console.log(wolframProblems, "wolframProblems 34 dr");
+    // console.log(wolframProblems, "wolframProblems 34 dr");
     const wolframProblemsArray = wolframProblems.split("@");
 
     let problemsArrayTrimmed = [];
@@ -43,16 +49,35 @@ router.post("/create", withAuth, async (req, res) => {
     for (const problem of wolframProblemsArray) {
       problemsArrayWolframTrimmed.push(problem.trim());
     }
-    console.log(problemsArrayWolframTrimmed, "DR 46");
+    // console.log(problemsArrayWolframTrimmed, "DR 46");
     for (let i = 0; i < problemsArray.length; i++) {
       respArrObjs.push({
         question: problemsArrayTrimmed[i],
         wolframFormatQuestion: problemsArrayWolframTrimmed[i],
       });
     }
-
     const responses = await Response.insertMany(respArrObjs);
-    console.log(responses, "responses 55 dr");
+    const responsesIds = responses.map((resp) => resp._id);
+    const session = await Session.create({
+      area: req.body.area,
+      include: req.body.include,
+      worded: req.body.isWorded,
+      amount: req.body.amountOfProblems,
+      difficulty: req.body.difficulty,
+      responses: responsesIds,
+    });
+    console.log(session, "================================");
+    const updateUser = await User.findOneAndUpdate(
+      { _id: req.session.user_id },
+      {
+        $push: {
+          sessions: session._id,
+        },
+      },
+      { new: true, rawResult: true }
+    );
+    console.log(updateUser);
+    // console.log(responses, "responses 55 dr");
 
     res.status(200).json({
       problems: problemsArrayTrimmed,

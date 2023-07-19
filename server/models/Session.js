@@ -8,7 +8,6 @@ const sessionSchema = new Schema(
     },
     include: {
       type: String,
-      required: true,
     },
     worded: {
       type: Boolean,
@@ -22,7 +21,7 @@ const sessionSchema = new Schema(
       type: Number,
       required: true,
     },
-    response: [
+    responses: [
       {
         type: Schema.Types.ObjectId,
         ref: "Response",
