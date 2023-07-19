@@ -110,8 +110,8 @@ router.get("/", withAuth, async (req, res) => {
       { _id: req.session.user_id },
       { password: 0 }
     )
-      .populate({ path: "Session", strictPopulate: false })
-      .populate({ path: "Response", strictPopulate: false });
+      .populate({ path: "sessions", strictPopulate: false })
+      .populate({ path: "responses", strictPopulate: false });
     if (!currentUser) {
       res.status(400).json({ message: "could not find current user" });
       return;

@@ -11,7 +11,6 @@ const {
   generateWolframProblems,
 } = require("../utils/openAi");
 const { fetchSolution } = require("../utils/wolfram");
-const { request } = require("http");
 
 // create a new set of problems based on the users inputs, return the array of problems and save the wolfram version to the db
 router.post("/create", withAuth, async (req, res) => {
@@ -66,7 +65,6 @@ router.post("/create", withAuth, async (req, res) => {
       difficulty: req.body.difficulty,
       responses: responsesIds,
     });
-    console.log(session, "================================");
     const updateUser = await User.findOneAndUpdate(
       { _id: req.session.user_id },
       {
@@ -76,11 +74,9 @@ router.post("/create", withAuth, async (req, res) => {
       },
       { new: true, rawResult: true }
     );
-    console.log(updateUser);
-    // console.log(responses, "responses 55 dr");
 
     res.status(200).json({
-      problems: problemsArrayTrimmed,
+      session: session,
     });
   } catch (err) {
     console.error(err);
@@ -109,6 +105,28 @@ router.post("/solve", withAuth, async (req, res) => {
     }
     console.log(solution, "solution");
     res.status(200).json({ solution: solution });
+  } catch (err) {
+    console.error(err);
+    res.send(err);
+  }
+});
+
+//get a single session from the params
+router.get("/session:_id", withAuth, async (req, res) => {
+  try {
+    const user = await User.findOne({ _id: req.session.user_id });
+
+    if (user.sessions.includes(req.params._id)) {
+      const selectedSession = await Session.findOne({
+        _id: req.params._id,
+      }).populate({ path: "responses", strictPopulate: false });
+      if (!selectedSession) {
+        res.status(404).json({ err: "Session not found" });
+      }
+      res.status(200).json({ session: selectedSession });
+    } else {
+      res.status(404).json({ err: "user does not have that session" });
+    }
   } catch (err) {
     console.error(err);
     res.send(err);
