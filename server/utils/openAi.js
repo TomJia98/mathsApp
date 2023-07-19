@@ -55,16 +55,18 @@ const checkVariables = async (area, include) => {
 
 const generateWolframProblems = async (problems) => {
   try {
+    console.log(problems, "generateProblems AI 58");
     const prompt = new PromptTemplate({
-      template: `refactor the mathematical problems (each problem is seperated by the @ symbol) {problems} into Wolfram Alpha API querys with each query being seperated from the others by an @ symbol. DO NOT USE and to join the query`,
+      // template: `refactor the mathematical problems (each problem is seperated by an @ symbol) {problems} into Wolfram Alpha API querys with each query being seperated from the others by an @ symbol.`,
+      template: `you are to refactor the following {problems} into Wolfram Alphas API querys. DO NOT SOLVE THE PROBLEMS. ONLY seperate them with @ symbols`,
       inputVariables: ["problems"],
     });
     const promptInput = await prompt.format({
       problems: problems,
     });
     const res = await model.call(promptInput);
-    console.log(res);
-    //return res;
+    console.log(res, "wolfram queries");
+    return res;
   } catch (err) {
     console.error("error: \n" + err);
     return { error: err };
@@ -81,9 +83,15 @@ const generateProblems = async (
   //remember that isWorded has to be boolean, not a string
   // returns vars unsafe if the inputted variables are unusable
   try {
+    console.log("generating problems");
+
+    if (amountOfProblems > 5) {
+      console.log("invalid number of problems");
+      return { error: "invalid number of problems" };
+    }
     if (area.length == 0) {
       console.log("no mathematical area supplied");
-      return "no mathematical area supplied";
+      return { error: "no mathematical area supplied" };
     }
     // using AI to determine if the vars are safe, could be better (and cheaper) to use a large lookup table instead
     let areTheVarsSafe = await checkVariables(area, include);
@@ -91,7 +99,7 @@ const generateProblems = async (
     if (areTheVarsSafe.includes("False")) {
       //non strict checking what checkVariables is returning
       console.log("vars unsafe");
-      return "vars unsafe";
+      return { error: "variables are unsafe" };
     }
 
     let resultFormat = `You need to represent each problem in a mathematical format e.g Find the equation of the tangent line for the following functions at x = 2. y = x^3 + 3x - 8`;
@@ -176,7 +184,7 @@ const generateSteps = async (problem, solution) => {
 
 module.exports = { generateProblems, generateSteps, generateWolframProblems };
 
-console.log(
-  generateWolframProblems(`Find the equation of the parabola with vertex at (2, -3) and passing through the point (4, -1)@Find the equation of the parabola with vertex at (-2, 4) and passing through the point (3, -2)@Find the equation of the parabola with vertex at (3, -2) and passing through the point (-2, 4)@Find the equation of the parabola with vertex at (2, -3) and passing through the point (-1, 5)@Find the equation of the parabola with vertex at (1, -2) and passing through 
-the point (3, 4)`)
-);
+// console.log(
+//   generateWolframProblems(`Find the equation of the parabola with vertex at (2, -3) and passing through the point (4, -1)@Find the equation of the parabola with vertex at (-2, 4) and passing through the point (3, -2)@Find the equation of the parabola with vertex at (3, -2) and passing through the point (-2, 4)@Find the equation of the parabola with vertex at (2, -3) and passing through the point (-1, 5)@Find the equation of the parabola with vertex at (1, -2) and passing through
+// the point (3, 4)`)
+// );

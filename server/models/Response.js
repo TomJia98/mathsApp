@@ -6,6 +6,10 @@ const responseSchema = new Schema(
       type: String,
       required: true,
     },
+    wolframFormatQuestion: {
+      type: String,
+      required: true,
+    },
     steps: [
       {
         type: String,
@@ -13,7 +17,6 @@ const responseSchema = new Schema(
     ],
     solution: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }

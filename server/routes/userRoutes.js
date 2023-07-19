@@ -26,7 +26,7 @@ router.get("/all:UNIQUEKEY", async (req, res) => {
 // create a new user
 router.post("/", async (req, res) => {
   try {
-    console.log("attenpting to create new user " + req.body.username);
+    console.log("attempting to create new user " + req.body.username);
     if (!req.body.username || !req.body.password) {
       console.log("user has not sent any details");
       res.send("please send your details for creation");

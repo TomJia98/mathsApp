@@ -12,6 +12,7 @@ const {
 } = require("../utils/openAi");
 const { fetchSolution } = require("../utils/wolfram");
 
+// create a new set of problems based on the users inputs, return the array of problems and save the wolfram version to the db
 router.post("/create", withAuth, async (req, res) => {
   try {
     if (req.body.include.includes("@")) {
@@ -24,46 +25,38 @@ router.post("/create", withAuth, async (req, res) => {
       req.body.difficulty,
       req.body.isWorded
     );
-    console.log(problems);
-    // console.log(problems + " problems");
+    console.log(problems, "problems 28 dr");
+
     const problemsArray = problems.resultsHuman.split("@");
     const wolframProblems = await generateWolframProblems(
       problems.resultsHuman
     );
-    console.log(wolframProblems);
-    //const problemsArrayWolfram = wolframProblems.split("@");
+    console.log(wolframProblems, "wolframProblems 34 dr");
+    const wolframProblemsArray = wolframProblems.split("@");
+
     let problemsArrayTrimmed = [];
     let problemsArrayWolframTrimmed = [];
+    const respArrObjs = [];
     for (const problem of problemsArray) {
       problemsArrayTrimmed.push(problem.trim());
     }
-    // for (const problem of problemsArrayWolfram) {
-    //   problemsArrayWolframTrimmed.push(problem.trim());
-    // }
-    // console.log(problemsArray);
-    // console.log(problemsArrayWolfram);
+    for (const problem of wolframProblemsArray) {
+      problemsArrayWolframTrimmed.push(problem.trim());
+    }
+    console.log(problemsArrayWolframTrimmed, "DR 46");
+    for (let i = 0; i < problemsArray.length; i++) {
+      respArrObjs.push({
+        question: problemsArrayTrimmed[i],
+        wolframFormatQuestion: problemsArrayWolframTrimmed[i],
+      });
+    }
+
+    const responses = await Response.insertMany(respArrObjs);
+    console.log(responses, "responses 55 dr");
+
     res.status(200).json({
       problems: problemsArrayTrimmed,
-      //wolfram: problemsArrayWolframTrimmed,
     });
-    // instead of doing all at once, should just do the ones the user wants
-    // res.send(problems.results);
-    // let resultsArray = [];
-    // for (const problem of problemsArrayWolfram) {
-    //   const wolframResultObj = await fetchSolution(problem);
-    //   console.log(wolframResultObj, "results wolfram");
-    //   let solution = "";
-    //   for (const subpod of wolframResultObj.subpods) {
-    //     if (solution === "") {
-    //       solution = subpod.plaintext + ", ";
-    //     } else {
-    //       solution += subpod.plaintext + ", ";
-    //     }
-    //   }
-    //   solution = solution.slice(0, -2);
-    //   resultsArray.push(solution);
-    // }
-    // res.status(200).json({ problems: problemsArray, results: resultsArray });
   } catch (err) {
     console.error(err);
     res.send(err);
