@@ -82,43 +82,48 @@ router.post("/create", withAuth, async (req, res) => {
 router.post("/solve", withAuth, async (req, res) => {
   //solve a question with wolfram, then generate a response with steps
   try {
-    let solution = "";
-    console.log(req.body.problem);
-    let solutionFromWolfram = await fetchSolution(req.body.problem);
-    console.log(solutionFromWolfram, "line 70 dr");
-
-    if ((await solutionFromWolfram.subpods.length) > 0) {
-      for (const subpod of solutionFromWolfram.subpods) {
-        if (solution === "") {
-          solution = subpod.plaintext + ", ";
-        } else {
-          solution += subpod.plaintext + ", ";
-        }
-      }
-      solution = solution.slice(0, -2);
+    const getSol = await Response.findOne({ _id: req.body._id });
+    if (getSol.solution) {
+      res.status(200).json({ result: getSol });
     } else {
-      solution = solutionFromWolfram.subpods.plaintext;
-    }
-    console.log(solution, "solution");
-    const problemSteps = await generateSteps(req.body.problem, solution);
-    const problemsStepsArray = problemSteps.steps.split("@");
-    problemsStepsArray.map((problem) => problem.trim());
+      let solution = "";
+      console.log(req.body.problem);
+      let solutionFromWolfram = await fetchSolution(req.body.problem);
+      console.log(solutionFromWolfram, "line 70 dr");
 
-    const updateResponse = await Response.findOneAndUpdate(
-      {
-        _id: req.body._id,
-      },
-      {
-        solution: solution,
-        steps: problemsStepsArray,
-      },
-      { new: true }
-    );
-    if (!updateResponse) {
-      res.status(404).send({ err: " could not find reponse " });
-    }
+      if ((await solutionFromWolfram.subpods.length) > 0) {
+        for (const subpod of solutionFromWolfram.subpods) {
+          if (solution === "") {
+            solution = subpod.plaintext + ", ";
+          } else {
+            solution += subpod.plaintext + ", ";
+          }
+        }
+        solution = solution.slice(0, -2);
+      } else {
+        solution = solutionFromWolfram.subpods.plaintext;
+      }
+      console.log(solution, "solution");
+      const problemSteps = await generateSteps(req.body.problem, solution);
+      const problemsStepsArray = problemSteps.steps.split("@");
+      problemsStepsArray.map((problem) => problem.trim());
 
-    res.status(200).json({ result: updateResponse });
+      const updateResponse = await Response.findOneAndUpdate(
+        {
+          _id: req.body._id,
+        },
+        {
+          solution: solution,
+          steps: problemsStepsArray,
+        },
+        { new: true }
+      );
+      if (!updateResponse) {
+        res.status(404).send({ err: " could not find reponse " });
+      }
+
+      res.status(200).json({ result: updateResponse });
+    }
   } catch (err) {
     console.error(err);
     res.send(err);
