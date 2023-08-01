@@ -29,7 +29,10 @@ router.post("/", async (req, res) => {
     console.log("attempting to create new user " + req.body.username);
     if (!req.body.username || !req.body.password) {
       console.log("user has not sent any details");
-      res.send("please send your details for creation");
+      res.send({
+        message: "please send your details for creation",
+        success: false,
+      });
     }
     const checkIfUsernameIsTaken = await User.findOne({
       username: req.body.username,
@@ -47,12 +50,14 @@ router.post("/", async (req, res) => {
         });
       });
     } else {
-      res.status(400).json({ message: "username is already taken" });
+      res
+        .status(400)
+        .json({ message: "username is already taken", success: false });
       return;
     }
   } catch (err) {
     console.error(err);
-    res.send(err);
+    res.send({ message: err, success: false });
   }
 });
 
@@ -63,16 +68,18 @@ router.post("/login", async (req, res) => {
       username: req.body.username,
     });
     if (!userData) {
-      res
-        .status(400)
-        .json({ message: "Incorrect username or password, please try again" });
+      res.status(400).json({
+        message: "Incorrect username or password, please try again",
+        success: false,
+      });
       return;
     }
     const validPw = await userData.isCorrectPassword(req.body.password);
     if (!validPw) {
-      res
-        .status(400)
-        .json({ message: "Incorrect username or password, please try again" });
+      res.status(400).json({
+        message: "Incorrect username or password, please try again",
+        success: false,
+      });
       return;
     }
     req.session.save(() => {
@@ -80,6 +87,7 @@ router.post("/login", async (req, res) => {
       req.session.logged_in = true;
       res.status(200).json({
         message: `Hello ${userData.username}, welcome back!`,
+        success: true,
       });
     });
   } catch (err) {
