@@ -117,7 +117,7 @@ const generateProblems = async (
     const formatInstructions = parser.getFormatInstructions();
     const prompt = new PromptTemplate({
       template: `you are a maths teacher coming up with problems for students to solve.
-      You are to generate {amountOfProblems} math problems, each with a difficulty {difficultyLevel}, with 1 being the easiest (primary school level) and 10 being the most challenging (graduate mathmatician).
+      You are to generate {amountOfProblems} math problem/s, with a difficulty of {difficultyLevel}, with 1 being the easiest (primary school level) and 10 being the most challenging (graduate mathmatician).
         Each problem must strictly be under the the mathematical concept of {mathArea} and some must include {mustInclude}.
         DO NOT answer the problems.
         DO NOT include the @ symbol as part of your problems.
@@ -144,7 +144,16 @@ const generateProblems = async (
 
     let res = await model.call(promptInput);
 
-    const result = await parser.parse(res);
+    // Extract the actual JSON content from the response
+    const jsonResponse = res
+      .split("\n")
+      .find((line) => line.startsWith('{"resultsHuman":'));
+
+    if (!jsonResponse) {
+      throw new Error("Expected JSON content not found in the response");
+    }
+
+    const result = await parser.parse(jsonResponse);
     return result;
   } catch (err) {
     console.error("error: \n" + err);

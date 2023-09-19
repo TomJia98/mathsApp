@@ -26,7 +26,7 @@ router.post("/create", withAuth, async (req, res) => {
       req.body.isWorded
     );
     // console.log(problems, "problems 28 dr");
-
+    // const clean = problems.resultsHuman.split('Output:\n')[1]
     const problemsArray = problems.resultsHuman.split("@");
     const wolframProblems = await generateWolframProblems(
       problems.resultsHuman
